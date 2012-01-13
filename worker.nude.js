@@ -291,65 +291,47 @@ function classifySkin(r, g, b){
 	nr = nurgb[0],
 	ng = nurgb[1],
 	nb = nurgb[2],
-	normRgbClassifier = (((nr/ng)>1.185) && (((r*b)/(Math.pow(r+g+b,2))) > 0.107) && (((r*g)/(Math.pow(r+g+b,2))) > 0.112)),
-	//hsv = toHsv(r, g, b),
-	//h = hsv[0]*100,
-	//s = hsv[1],
-	//hsvClassifier = (h < 50 && h > 0 && s > 0.23 && s < 0.68);
-	hsv = toHsvTest(r, g, b),
+	normRgbClassifier = (((nr/ng)>1.185) && (((r*b)/(Math.pow(r+g+b,2))) > 0.107) && (((r*g)/(Math.pow(r+g+b,2))) > 0.112));
+	var hsv = toHsv(r, g, b),
 	h = hsv[0],
 	s = hsv[1],
 	hsvClassifier = (h > 0 && h < 35 && s > 0.23 && s < 0.68);
-	/*
-	 * ycc doesnt work
-	 
-	ycc = toYcc(r, g, b),
+	var ycc = toYcc(r, g, b),
 	y = ycc[0],
 	cb = ycc[1],
 	cr = ycc[2],
 	yccClassifier = ((y > 80) && (cb > 77 && cb < 127) && (cr > 133 && cr < 173));
-	*/
 	
-	return (rgbClassifier || normRgbClassifier || hsvClassifier); // 
+	return (rgbClassifier || normRgbClassifier || hsvClassifier || yccClassifier); 
 };
 function toYcc(r, g, b){
-	r/=255,g/=255,b/=255;
-	var y = 0.299*r + 0.587*g + 0.114*b,
-	cr = r - y,
-	cb = b - y;
+	var y =   16 + 0.29900*r + 0.58700*g + 0.11400*b,
+	    cr = 128 - 0.16874*r - 0.33126*g + 0.50000*b,
+	    cb = 128 + 0.50000*r - 0.41869*g - 0.08131*b;
 	
 	return [y, cr, cb];
 };
 
+// RGB to HSV by Foley et al. 1992
 function toHsv(r, g, b){
-	return [
-	        // hue
-	        Math.acos((0.5*((r-g)+(r-b)))/(Math.sqrt((Math.pow((r-g),2)+((r-b)*(g-b)))))),
-	        // saturation
-	        1-(3*((Math.min(r,g,b))/(r+g+b))),
-	        // value
-	        (1/3)*(r+g+b)
-	        ];
-};
-function toHsvTest(r, g, b){
 	var h = 0,
-	mx = Math.max(r, g, b),
-	mn = Math.min(r, g, b),
-	dif = mx - mn;
+	max = Math.max(r, g, b),
+	min = Math.min(r, g, b),
+	diff = max - min;
 	
-	if(mx == r){
-		h = (g - b)/dif;
-	}else if(mx == g){
-		h = 2+((g - r)/dif)
+	if(max == r){
+		h = (g - b)/diff;
+	}else if(max == g){
+		h = 2+((g - r)/diff)
 	}else{
-		h = 4+((r - g)/dif);
+		h = 4+((r - g)/diff);
 	}
 	h = h*60;
 	if(h < 0){
 		h = h+360;
 	}
 	
-	return [h, 1-(3*((Math.min(r,g,b))/(r+g+b))),(1/3)*(r+g+b)] ;	
+	return [h, 1-(3*(max/(r+g+b))),(1/3)*(r+g+b)] ;	
 	
 };
 function toNormalizedRgb(r, g, b){
